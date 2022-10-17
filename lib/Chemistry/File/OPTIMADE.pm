@@ -3,7 +3,6 @@ package Chemistry::File::OPTIMADE;
 # VERSION
 # $Id$
 
-
 use strict;
 use warnings;
 
@@ -11,6 +10,10 @@ use base 'Chemistry::File';
 
 use Chemistry::Mol;
 use JSON;
+use List::Util qw( any );
+use URL::Encode qw( url_params_multi );
+
+my @mandatory_fields = qw( cartesian_site_positions species species_at_sites );
 
 =head1 NAME
 
@@ -48,7 +51,28 @@ sub parse_string {
         $json->{meta}{api_version} =~ /^[^01]\./ ) {
         warn 'OPTIMADE API version ' . $json->{meta}{api_version} .
              ' encountered, this module supports versions 0 and 1, ' .
-             'later versions may not work as expected';
+             'later versions may not work as expected' . "\n";
+    }
+
+    my $required_fields_selected;
+    if( $json->{meta} &&
+        $json->{meta}{query} &&
+        $json->{meta}{query}{representation} ) {
+        if( $json->{meta}{query}{representation} =~ /\?/ ) {
+            my( $query ) = reverse split /\?/, $json->{meta}{query}{representation};
+            $query = url_params_multi $query;
+            if( $query->{response_fields} ) {
+                my @response_fields = split ',', $query->{response_fields}[0];
+                $required_fields_selected =
+                    (any { $_ eq 'cartesian_site_positions' } @response_fields) &&
+                    (any { $_ eq 'species' } @response_fields) &&
+                    (any { $_ eq 'species_at_sites' } @response_fields);
+            } else {
+                $required_fields_selected = ''; # false
+            }
+        } else {
+            $required_fields_selected = ''; # false
+        }
     }
 
     return () unless $json->{data};
@@ -65,6 +89,13 @@ sub parse_string {
     my @molecules;
     for my $description (@molecule_descriptions) {
         my $mol = $mol_class->new( name => $description->{id} );
+
+        if( any { !exists $description->{attributes}{$_} } @mandatory_fields ) {
+            warn 'one or more of the mandatory fields (' .
+                 join( ', ', map { "'$_'" } @mandatory_fields ) .
+                 'not found in input for molecule \'' .
+                 $description->{id} . '\', skipping' . "\n";
+        }
 
         # FIXME: For now we are taking the first chemical symol.
         # PerlMol is not capable to represent mixture sites.
