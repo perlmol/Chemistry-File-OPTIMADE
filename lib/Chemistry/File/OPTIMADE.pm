@@ -124,7 +124,9 @@ L<https://github.com/perlmol/Chemistry-File-OPTIMADE>
 
 =head1 SEE ALSO
 
-L<Chemistry::Mol>
+L<Chemistry::Mol>, L<Chemistry::File>
+
+The OPTIMADE Home Page at https://www.optimade.org
 
 =head1 AUTHOR
 
