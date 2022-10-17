@@ -21,10 +21,10 @@ Chemistry::File::OPTIMADE - OPTIMADE reader
 
 =head1 SYNOPSIS
 
-    use Chemistry::File::CML;
+    use Chemistry::File::OPTIMADE;
 
     # read a molecule
-    my $mol = Chemistry::Mol->read('myfile.cml');
+    my $mol = Chemistry::Mol->read('myfile.json');
 
 =cut
 
