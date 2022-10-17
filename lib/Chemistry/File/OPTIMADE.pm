@@ -89,21 +89,26 @@ sub parse_string {
     my @molecules;
     for my $description (@molecule_descriptions) {
         my $mol = $mol_class->new( name => $description->{id} );
+        my $attributes = $description->{attributes};
 
-        if( any { !exists $description->{attributes}{$_} } @mandatory_fields ) {
+        if( any { !exists $attributes->{$_} } @mandatory_fields ) {
             warn 'one or more of the mandatory fields (' .
                  join( ', ', map { "'$_'" } @mandatory_fields ) .
                  'not found in input for molecule \'' .
                  $description->{id} . '\', skipping' . "\n";
         }
 
-        # FIXME: For now we are taking the first chemical symol.
-        # PerlMol is not capable to represent mixture sites.
-        my %species = map { $_->{name} => $_->{chemical_symbols}[0] }
-                          @{$description->{attributes}{species}};
-        for my $site (0..$#{$description->{attributes}{cartesian_site_positions}}) {
-            my $atom = $mol->new_atom( coords => $description->{attributes}{cartesian_site_positions}[$site],
-                                       symbol => $species{$description->{attributes}{species_at_sites}[$site]} );
+        my %species = map { $_->{name} => $_ } @{$attributes->{species}};
+        for my $site (0..$#{$attributes->{cartesian_site_positions}}) {
+            my $species = $species{$attributes->{species_at_sites}[$site]};
+
+            # FIXME: For now we are taking the first chemical symol.
+            # PerlMol is not capable to represent mixture sites.
+            my $atom = $mol->new_atom( coords => $attributes->{cartesian_site_positions}[$site],
+                                       symbol => $species->{chemical_symbols}[0] );
+            if( exists $species->{mass} ) {
+                $atom->mass( $species->{mass}[0] );
+            }
         }
         push @molecules, $mol;
     }
