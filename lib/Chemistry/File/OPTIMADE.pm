@@ -24,7 +24,8 @@ Chemistry::File::OPTIMADE - OPTIMADE reader
     use Chemistry::File::OPTIMADE;
 
     # read a molecule
-    my $mol = Chemistry::Mol->read('myfile.json');
+    my $file = Chemistry::File::OPTIMADE->new( file => 'myfile.json' );
+    my $mol = $file->read();
 
 =cut
 
