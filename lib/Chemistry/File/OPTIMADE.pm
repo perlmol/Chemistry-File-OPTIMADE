@@ -42,6 +42,15 @@ sub parse_string {
     my $bond_class = $opts{bond_class} || $mol_class->bond_class;
 
     my $json = decode_json $s;
+
+    if( $json->{meta} &&
+        $json->{meta}{api_version} &&
+        $json->{meta}{api_version} =~ /^[^01]\./ ) {
+        warn 'OPTIMADE API version ' . $json->{meta}{api_version} .
+             ' encountered, this module supports versions 0 and 1, ' .
+             'later versions may not work as expected';
+    }
+
     return () unless $json->{data};
 
     my @molecule_descriptions;
