@@ -55,7 +55,7 @@ sub parse_string {
 
     my @molecule_descriptions;
     if(      ref $json->{data} eq 'HASH' && $json->{data}{attributes} ) {
-        @molecule_descriptions = ( $json->{data}{attributes} );
+        @molecule_descriptions = ( $json->{data} );
     } elsif( ref $json->{data} eq 'ARRAY' ) {
         @molecule_descriptions = @{$json->{data}};
     } else {
@@ -64,14 +64,15 @@ sub parse_string {
 
     my @molecules;
     for my $description (@molecule_descriptions) {
-        my $mol = $mol_class->new( id => $description->{id} );
+        my $mol = $mol_class->new( name => $description->{id} );
+
         # FIXME: For now we are taking the first chemical symol.
         # PerlMol is not capable to represent mixture sites.
         my %species = map { $_->{name} => $_->{chemical_symbols}[0] }
-                          @{$description->{species}};
-        for my $site (0..$#{$description->{cartesian_site_positions}}) {
-            my $atom = $mol->new_atom( coords => $description->{cartesian_site_positions}[$site],
-                                       symbol => $species{$description->{species_at_sites}[$site]} );
+                          @{$description->{attributes}{species}};
+        for my $site (0..$#{$description->{attributes}{cartesian_site_positions}}) {
+            my $atom = $mol->new_atom( coords => $description->{attributes}{cartesian_site_positions}[$site],
+                                       symbol => $species{$description->{attributes}{species_at_sites}[$site]} );
         }
         push @molecules, $mol;
     }
