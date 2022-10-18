@@ -92,6 +92,8 @@ sub parse_string {
         my $mol = $mol_class->new( name => $description->{id} );
         my $attributes = $description->{attributes};
 
+        # TODO: Warn about disorder
+
         if( any { !exists $attributes->{$_} } @mandatory_fields ) {
             warn 'one or more of the mandatory fields (' .
                  join( ', ', map { "'$_'" } @mandatory_fields ) .
